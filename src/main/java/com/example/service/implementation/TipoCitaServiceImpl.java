@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class TipoCitaServiceImpl implements TipoCitaService {
     }
 
     @Override
+    @Transactional
     public TipoCitaResponse save(TipoCitaRequest request) {
         if (repository.existsByNombreIgnoreCase(request.getNombre())) {
             throw new ValidationException("Ya existe un tipo de cita con ese nombre");
@@ -43,6 +45,7 @@ public class TipoCitaServiceImpl implements TipoCitaService {
     }
 
     @Override
+    @Transactional
     public TipoCitaResponse update(Long id, TipoCitaRequest request) {
         TipoCita existing = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tipo de cita no encontrado"));
@@ -57,6 +60,7 @@ public class TipoCitaServiceImpl implements TipoCitaService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Tipo de cita no encontrado con ID: " + id);

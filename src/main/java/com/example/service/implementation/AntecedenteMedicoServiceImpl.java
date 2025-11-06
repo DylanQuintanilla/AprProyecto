@@ -16,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -83,6 +84,7 @@ public class AntecedenteMedicoServiceImpl implements AntecedenteMedicoService {
     }
 
     @Override
+    @Transactional
     public AntecedenteMedicoResponse save(AntecedenteMedicoRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -101,6 +103,7 @@ public class AntecedenteMedicoServiceImpl implements AntecedenteMedicoService {
     }
 
     @Override
+    @Transactional
     public AntecedenteMedicoResponse update(Long id, AntecedenteMedicoRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -122,6 +125,7 @@ public class AntecedenteMedicoServiceImpl implements AntecedenteMedicoService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Antecedente médico no encontrado con ID: " + id);

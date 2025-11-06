@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class EspecialidadServiceImpl implements EspecialidadService {
     }
 
     @Override
+    @Transactional
     public EspecialidadResponse save(EspecialidadRequest request) {
         if (repository.existsByNombreIgnoreCase(request.getNombre())) {
             throw new ValidationException("Ya existe una especialidad con ese nombre");
@@ -44,6 +46,7 @@ public class EspecialidadServiceImpl implements EspecialidadService {
     }
 
     @Override
+    @Transactional
     public EspecialidadResponse update(Long id, EspecialidadRequest request) {
         Especialidad existing = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Especialidad no encontrada con ID: " + id));
@@ -58,6 +61,7 @@ public class EspecialidadServiceImpl implements EspecialidadService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Especialidad no encontrada con ID: " + id);

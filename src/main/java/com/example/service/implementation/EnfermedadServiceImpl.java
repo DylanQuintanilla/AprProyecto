@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class EnfermedadServiceImpl implements EnfermedadService {
     }
 
     @Override
+    @Transactional
     public EnfermedadResponse save(EnfermedadRequest request) {
         if (repository.existsByNombreIgnoreCase(request.getNombre())) {
             throw new ValidationException("Ya existe una enfermedad con ese nombre");
@@ -43,6 +45,7 @@ public class EnfermedadServiceImpl implements EnfermedadService {
     }
 
     @Override
+    @Transactional
     public EnfermedadResponse update(Long id, EnfermedadRequest request) {
         Enfermedad existing = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Enfermedad no encontrada"));
@@ -58,6 +61,7 @@ public class EnfermedadServiceImpl implements EnfermedadService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Enfermedad no encontrada con ID: " + id);

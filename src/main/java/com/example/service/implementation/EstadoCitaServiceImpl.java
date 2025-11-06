@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class EstadoCitaServiceImpl implements EstadoCitaService {
     }
 
     @Override
+    @Transactional
     public EstadoCitaResponse save(EstadoCitaRequest request) {
         if (repository.existsByNombreIgnoreCase(request.getNombre())) {
             throw new ValidationException("Ya existe un estado de cita con ese nombre");
@@ -43,6 +45,7 @@ public class EstadoCitaServiceImpl implements EstadoCitaService {
     }
 
     @Override
+    @Transactional
     public EstadoCitaResponse update(Long id, EstadoCitaRequest request) {
         EstadoCita existing = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Estado de cita no encontrado"));
@@ -57,6 +60,7 @@ public class EstadoCitaServiceImpl implements EstadoCitaService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Estado de cita no encontrado con ID: " + id);

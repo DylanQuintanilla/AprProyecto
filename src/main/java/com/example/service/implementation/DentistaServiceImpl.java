@@ -23,6 +23,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -80,6 +81,7 @@ public class DentistaServiceImpl implements DentistaService {
     }
 
     @Override
+    @Transactional
     public DentistaResponse save(DentistaRequest request) {
 
         // --- Validaciones (Asegurarse de que no exista el correo ni el usuario) ---
@@ -135,6 +137,7 @@ public class DentistaServiceImpl implements DentistaService {
     }
 
     @Override
+    @Transactional
     public DentistaResponse update(Long id, DentistaRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -179,6 +182,7 @@ public class DentistaServiceImpl implements DentistaService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Dentista no encontrado con ID: " + id);

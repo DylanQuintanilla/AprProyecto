@@ -12,6 +12,7 @@ import com.example.service.mapper.TratamientoMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class TratamientoServiceImpl implements TratamientoService {
     }
 
     @Override
+    @Transactional
     public TratamientoResponse save(TratamientoRequest request) {
         Tratamiento tratamiento = mapper.toTratamiento(request);
         Enfermedad enfermedad = enfermedadRepository.findById(request.getEnfermedadId())
@@ -45,6 +47,7 @@ public class TratamientoServiceImpl implements TratamientoService {
     }
 
     @Override
+    @Transactional
     public TratamientoResponse update(Long id, TratamientoRequest request) {
         Tratamiento existing = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tratamiento no encontrado"));
@@ -60,6 +63,7 @@ public class TratamientoServiceImpl implements TratamientoService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Tratamiento no encontrado con ID: " + id);

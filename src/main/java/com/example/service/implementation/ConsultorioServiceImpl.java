@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class ConsultorioServiceImpl implements ConsultorioService {
     }
 
     @Override
+    @Transactional
     public ConsultorioResponse save(ConsultorioRequest request) {
         if (repository.existsByNombreIgnoreCase(request.getNombre())) {
             throw new ValidationException("Ya existe un consultorio con ese nombre");
@@ -43,6 +45,7 @@ public class ConsultorioServiceImpl implements ConsultorioService {
     }
 
     @Override
+    @Transactional
     public ConsultorioResponse update(Long id, ConsultorioRequest request) {
         Consultorio existing = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Consultorio no encontrado"));
@@ -58,6 +61,7 @@ public class ConsultorioServiceImpl implements ConsultorioService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Consultorio no encontrado con ID: " + id);

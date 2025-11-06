@@ -162,6 +162,7 @@ public class CitaServiceImpl implements CitaService {
     }
 
     @Override
+    @Transactional
     public GenericResponse deleteById(Long id) {
         if (!repository.existsById(id)) {
             throw new EntityNotFoundException("Cita no encontrada con ID: " + id);
