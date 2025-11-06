@@ -1,28 +1,20 @@
 package com.example.service.implementation;
 
-// Importaciones de los DTOs (Paso 7)
 import com.example.controller.request.auth.AuthCreateUserRequest;
 import com.example.controller.request.auth.AuthLoginRequest;
 import com.example.controller.response.auth.AuthResponse;
-
-// Importaciones de las entidades de seguridad (Paso 3)
+import com.example.model.entity.security.RefreshToken;
 import com.example.model.entity.security.RoleEntity;
 import com.example.model.entity.security.UserEntity;
-
-// Importaciones de los repositorios de seguridad (Paso 3)
 import com.example.repository.security.RoleRepository;
 import com.example.repository.security.UserRepository;
-
-// Importación de JwtUtils (Paso 4)
 import com.example.config.security.util.JwtUtils;
-
-// Importaciones de Spring Security y otros
+import com.example.service.RefreshTokenService; // <-- 1. Importar el nuevo servicio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,16 +43,16 @@ public class UserDetailServiceImpl implements UserDetailsService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private RefreshTokenService refreshTokenService; // <-- 2. Inyectar el nuevo servicio
+
     @Override
     public UserDetails loadUserByUsername(String username) {
-
         UserEntity userEntity = userRepository.findUserEntityByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("El usuario " + username + " no existe."));
 
         List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
-
         userEntity.getRoles().forEach(role -> authorityList.add(new SimpleGrantedAuthority("ROLE_".concat(role.getRoleEnum().name()))));
-
         userEntity.getRoles().stream()
                 .flatMap(role -> role.getPermissionList().stream())
                 .forEach(permission -> authorityList.add(new SimpleGrantedAuthority(permission.getName())));
@@ -75,15 +67,11 @@ public class UserDetailServiceImpl implements UserDetailsService {
     }
 
     public AuthResponse createUser(AuthCreateUserRequest createRoleRequest) {
-
-        // --- CAMBIOS AQUÍ ---
         String username = createRoleRequest.getUsername();
         String password = createRoleRequest.getPassword();
         List<String> rolesRequest = createRoleRequest.getRoleRequest().getRoleListName();
-        // --- FIN DE CAMBIOS ---
 
         Set<RoleEntity> roleEntityList = roleRepository.findRoleEntitiesByRoleEnumIn(rolesRequest).stream().collect(Collectors.toSet());
-
         if (roleEntityList.isEmpty()) {
             throw new IllegalArgumentException("The roles specified does not exist.");
         }
@@ -97,7 +85,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
                 .accountNoExpired(true)
                 .credentialNoExpired(true)
                 .build();
-
         UserEntity userSaved = userRepository.save(userEntity);
 
         ArrayList<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -106,33 +93,43 @@ public class UserDetailServiceImpl implements UserDetailsService {
                 .flatMap(role -> role.getPermissionList().stream())
                 .forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission.getName())));
 
-        SecurityContext securityContextHolder = SecurityContextHolder.getContext();
         Authentication authentication = new UsernamePasswordAuthenticationToken(userSaved, null, authorities);
 
-        String accessToken = jwtUtils.createToken(authentication);
+        // --- 3. Lógica actualizada para CREAR USUARIO ---
+        String accessToken = jwtUtils.createToken(authentication); // Token de Acceso
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(username); // Token de Refresco
 
-        AuthResponse authResponse = new AuthResponse(username, "User created successfully", accessToken, true);
+        AuthResponse authResponse = new AuthResponse(
+                username,
+                "User created successfully",
+                accessToken, // <-- 4. Corregido de 'jwt' a 'accessToken'
+                refreshToken.getToken(), // <-- 5. Añadir el token de refresco
+                true);
         return authResponse;
     }
 
     public AuthResponse loginUser(AuthLoginRequest authLoginRequest) {
-
-        // --- CAMBIOS AQUÍ ---
         String username = authLoginRequest.getUsername();
         String password = authLoginRequest.getPassword();
-        // --- FIN DE CAMBIOS ---
 
         Authentication authentication = this.authenticate(username, password);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String accessToken = jwtUtils.createToken(authentication);
-        AuthResponse authResponse = new AuthResponse(username, "User loged succesfully", accessToken, true);
+        // --- 6. Lógica actualizada para LOGIN ---
+        String accessToken = jwtUtils.createToken(authentication); // Token de Acceso
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(username); // Token de Refresco
+
+        AuthResponse authResponse = new AuthResponse(
+                username,
+                "User loged succesfully",
+                accessToken, // <-- Corregido de 'jwt' a 'accessToken'
+                refreshToken.getToken(), // <-- Añadir el token de refresco
+                true);
         return authResponse;
     }
 
     public Authentication authenticate(String username, String password) {
         UserDetails userDetails = this.loadUserByUsername(username);
-
         if (userDetails == null) {
             throw new BadCredentialsException(String.format("Invalid username or password"));
         }

@@ -8,10 +8,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-@JsonPropertyOrder({"username", "message", "status", "jwt"})
+@JsonPropertyOrder({"username", "message", "status", "accessToken", "refreshToken"})
 public class AuthResponse {
     private String username;
     private String message;
-    private String jwt;
+    private String accessToken;  // <-- Renombrado de 'jwt'
+    private String refreshToken; // <-- Nuevo campo
     private Boolean status;
 }
