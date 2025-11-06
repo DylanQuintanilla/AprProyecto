@@ -1,24 +1,6 @@
 package com.example;
-
-import com.example.model.entity.Dentista;
-import com.example.model.entity.Paciente;
-import com.example.model.entity.security.PermissionEntity;
-import com.example.model.entity.security.RoleEntity;
-import com.example.model.entity.security.RoleEnum;
-import com.example.model.entity.security.UserEntity;
-import com.example.repository.DentistaRepository;
-import com.example.repository.PacienteRepository;
-// --- CAMBIOS AQUÍ: Importar nuevos repositorios ---
-import com.example.repository.security.PermissionRepository;
-import com.example.repository.security.RoleRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 @SpringBootApplication
 public class CinicaDentalApplication {
@@ -27,7 +9,7 @@ public class CinicaDentalApplication {
         SpringApplication.run(CinicaDentalApplication.class, args);
     }
 
-    // --- CAMBIO AQUÍ: Inyectar nuevos repositorios ---
+    /*// --- CAMBIO AQUÍ: Inyectar nuevos repositorios ---
     @Bean
     CommandLineRunner init(PacienteRepository pacienteRepository,
                            DentistaRepository dentistaRepository,
@@ -164,5 +146,5 @@ public class CinicaDentalApplication {
             pacienteRepository.saveAll(List.of(paciente, adminComoPaciente));
             dentistaRepository.save(dentista);
         };
-    }
+    }*/
 }
