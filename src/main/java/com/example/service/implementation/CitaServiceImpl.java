@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.CitaRequest;
 import com.example.controller.response.CitaResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.*;
 import com.example.repository.*;
 import com.example.service.CitaService;
@@ -170,10 +171,12 @@ public class CitaServiceImpl implements CitaService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        // No se necesita lógica aquí porque SecurityConfig ya protege
-        // este endpoint y solo permite a "citas:admin"
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Cita no encontrada con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Cita con ID " + id + " eliminada exitosamente.");
     }
 
     // --- Métodos de ayuda ---

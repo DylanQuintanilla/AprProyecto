@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.EnfermedadRequest;
 import com.example.controller.response.EnfermedadResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.Enfermedad;
 import com.example.repository.EnfermedadRepository;
 import com.example.service.EnfermedadService;
@@ -57,7 +58,11 @@ public class EnfermedadServiceImpl implements EnfermedadService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Enfermedad no encontrada con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Enfermedad con ID " + id + " eliminada exitosamente.");
     }
 }

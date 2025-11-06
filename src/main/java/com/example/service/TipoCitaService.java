@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.controller.request.TipoCitaRequest;
 import com.example.controller.response.TipoCitaResponse;
+import com.example.controller.response.common.GenericResponse;
 import java.util.List;
 
 public interface TipoCitaService {
@@ -9,5 +10,5 @@ public interface TipoCitaService {
     TipoCitaResponse findById(Long id);
     TipoCitaResponse save(TipoCitaRequest request);
     TipoCitaResponse update(Long id, TipoCitaRequest request);
-    void deleteById(Long id);
+    GenericResponse deleteById(Long id);
 }

@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.DentistaRequest;
 import com.example.controller.response.DentistaResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.Dentista;
 import com.example.model.entity.Especialidad;
 import com.example.repository.DentistaRepository;
@@ -123,8 +124,12 @@ public class DentistaServiceImpl implements DentistaService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Dentista no encontrado con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Dentista con ID " + id + " eliminado exitosamente.");
     }
 
     private boolean hasAuthority(Authentication authentication, String authority) {

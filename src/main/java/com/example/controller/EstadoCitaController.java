@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.controller.request.EstadoCitaRequest;
 import com.example.controller.response.EstadoCitaResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.service.EstadoCitaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class EstadoCitaController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        estadoCitaService.deleteById(id);
+    public GenericResponse delete(@PathVariable Long id) {
+        return estadoCitaService.deleteById(id);
     }
 }

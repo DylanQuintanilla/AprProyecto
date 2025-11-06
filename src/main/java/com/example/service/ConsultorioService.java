@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.controller.request.ConsultorioRequest;
 import com.example.controller.response.ConsultorioResponse;
+import com.example.controller.response.common.GenericResponse;
 import java.util.List;
 
 public interface ConsultorioService {
@@ -9,5 +10,5 @@ public interface ConsultorioService {
     ConsultorioResponse findById(Long id);
     ConsultorioResponse save(ConsultorioRequest request);
     ConsultorioResponse update(Long id, ConsultorioRequest request);
-    void deleteById(Long id);
+    GenericResponse deleteById(Long id);
 }

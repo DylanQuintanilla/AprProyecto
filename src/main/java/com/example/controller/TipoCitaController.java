@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.controller.request.TipoCitaRequest;
 import com.example.controller.response.TipoCitaResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.service.TipoCitaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class TipoCitaController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        tipoCitaService.deleteById(id);
+    public GenericResponse delete(@PathVariable Long id) {
+        return tipoCitaService.deleteById(id);
     }
 }

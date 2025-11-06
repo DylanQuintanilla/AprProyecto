@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.controller.request.EstadoCitaRequest;
 import com.example.controller.response.EstadoCitaResponse;
+import com.example.controller.response.common.GenericResponse;
 import java.util.List;
 
 public interface EstadoCitaService {
@@ -9,5 +10,5 @@ public interface EstadoCitaService {
     EstadoCitaResponse findById(Long id);
     EstadoCitaResponse save(EstadoCitaRequest request);
     EstadoCitaResponse update(Long id, EstadoCitaRequest request);
-    void deleteById(Long id);
+    GenericResponse deleteById(Long id);
 }

@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.controller.request.TratamientoRequest;
 import com.example.controller.response.TratamientoResponse;
+import com.example.controller.response.common.GenericResponse;
 import java.util.List;
 
 public interface TratamientoService {
@@ -9,5 +10,5 @@ public interface TratamientoService {
     TratamientoResponse findById(Long id);
     TratamientoResponse save(TratamientoRequest request);
     TratamientoResponse update(Long id, TratamientoRequest request);
-    void deleteById(Long id);
+    GenericResponse deleteById(Long id);
 }

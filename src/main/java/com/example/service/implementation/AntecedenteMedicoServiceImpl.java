@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.AntecedenteMedicoRequest;
 import com.example.controller.response.AntecedenteMedicoResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.AntecedenteMedico;
 import com.example.model.entity.Paciente;
 import com.example.repository.AntecedenteMedicoRepository;
@@ -121,10 +122,12 @@ public class AntecedenteMedicoServiceImpl implements AntecedenteMedicoService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        // La seguridad de este método ya está manejada por SecurityConfig
-        // (Solo "antecedentes:admin" puede entrar aquí)
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Antecedente médico no encontrado con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Antecedente médico con ID " + id + " eliminado exitosamente.");
     }
 
     // --- Método de ayuda ---

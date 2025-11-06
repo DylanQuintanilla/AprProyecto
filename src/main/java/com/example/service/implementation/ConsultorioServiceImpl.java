@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.ConsultorioRequest;
 import com.example.controller.response.ConsultorioResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.Consultorio;
 import com.example.repository.ConsultorioRepository;
 import com.example.service.ConsultorioService;
@@ -57,7 +58,11 @@ public class ConsultorioServiceImpl implements ConsultorioService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Consultorio no encontrado con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Consultorio con ID " + id + " eliminado exitosamente.");
     }
 }

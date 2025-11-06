@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.EspecialidadRequest;
 import com.example.controller.response.EspecialidadResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.Especialidad;
 import com.example.repository.EspecialidadRepository;
 import com.example.service.EspecialidadService;
@@ -57,7 +58,11 @@ public class EspecialidadServiceImpl implements EspecialidadService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Especialidad no encontrada con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Especialidad con ID " + id + " eliminada exitosamente.");
     }
 }

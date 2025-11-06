@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.TipoCitaRequest;
 import com.example.controller.response.TipoCitaResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.TipoCita;
 import com.example.repository.TipoCitaRepository;
 import com.example.service.TipoCitaService;
@@ -56,7 +57,11 @@ public class TipoCitaServiceImpl implements TipoCitaService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Tipo de cita no encontrado con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Tipo de cita con ID " + id + " eliminado exitosamente.");
     }
 }

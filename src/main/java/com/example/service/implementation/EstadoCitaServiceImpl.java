@@ -2,6 +2,7 @@ package com.example.service.implementation;
 
 import com.example.controller.request.EstadoCitaRequest;
 import com.example.controller.response.EstadoCitaResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.EstadoCita;
 import com.example.repository.EstadoCitaRepository;
 import com.example.service.EstadoCitaService;
@@ -56,7 +57,11 @@ public class EstadoCitaServiceImpl implements EstadoCitaService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public GenericResponse deleteById(Long id) {
+        if (!repository.existsById(id)) {
+            throw new EntityNotFoundException("Estado de cita no encontrado con ID: " + id);
+        }
         repository.deleteById(id);
+        return new GenericResponse("Estado de cita con ID " + id + " eliminado exitosamente.");
     }
 }

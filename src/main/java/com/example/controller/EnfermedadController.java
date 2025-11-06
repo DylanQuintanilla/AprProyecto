@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.controller.request.EnfermedadRequest;
 import com.example.controller.response.EnfermedadResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.service.EnfermedadService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class EnfermedadController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        enfermedadService.deleteById(id);
+    public GenericResponse delete(@PathVariable Long id) {
+        return enfermedadService.deleteById(id);
     }
 }
