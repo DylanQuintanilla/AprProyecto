@@ -1,9 +1,7 @@
 package com.example.config.security;
 
-// Importaciones de los manejadores de excepciones (NUEVO)
 import com.example.config.exception.CustomAccessDeniedHandler;
 import com.example.config.exception.CustomAuthenticationEntryPoint;
-
 import com.example.config.security.filter.JwtTokenValidator;
 import com.example.config.security.util.JwtUtils;
 import com.example.service.implementation.UserDetailServiceImpl;
@@ -30,76 +28,87 @@ public class SecurityConfig {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // --- INYECTAMOS LOS MANEJADORES DE ERRORES (NUEVO) ---
     @Autowired
     private CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Autowired
     private CustomAccessDeniedHandler accessDeniedHandler;
-    // --- FIN DE INYECCIONES ---
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, AuthenticationProvider authenticationProvider) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(http -> {
+                .authorizeHttpRequests(auth -> {
 
-                    // EndPoints Publicos:
-                    http.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
-                    http.requestMatchers("/api-docs/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll();
+                    // --- EndPoints Publicos ---
+                    auth.requestMatchers(HttpMethod.POST, "/auth/**").permitAll();
 
+                    // --- CORRECCIÓN EXPLÍCITA DE SWAGGER ---
+                    auth.requestMatchers(
+                            "/api-docs/**",
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",  // <-- Añadida la ruta exacta
+                            "/v3/api-docs/**"
+                    ).permitAll();
 
-                    // EndPoints Privados (Protegidos):
-
-                    // --- Pacientes ---
-                    http.requestMatchers(HttpMethod.GET, "/pacientes", "/pacientes/**")
-                            .hasAnyAuthority("READ");
-                    http.requestMatchers(HttpMethod.POST, "/pacientes")
-                            .hasAnyAuthority("CREATE");
-                    http.requestMatchers(HttpMethod.PUT, "/pacientes/**")
-                            .hasAnyAuthority("UPDATE");
-                    http.requestMatchers(HttpMethod.DELETE, "/pacientes/**")
-                            .hasAuthority("DELETE");
-
-                    // --- Dentistas ---
-                    http.requestMatchers(HttpMethod.GET, "/dentistas", "/dentistas/**")
-                            .hasAnyAuthority("READ");
-                    http.requestMatchers(HttpMethod.POST, "/dentistas")
-                            .hasAuthority("CREATE");
-                    http.requestMatchers(HttpMethod.PUT, "/dentistas/**")
-                            .hasAuthority("UPDATE");
-                    http.requestMatchers(HttpMethod.DELETE, "/dentistas/**")
-                            .hasAuthority("DELETE");
 
                     // --- Citas ---
-                    http.requestMatchers(HttpMethod.GET, "/citas", "/citas/**")
-                            .hasAuthority("READ");
-                    http.requestMatchers(HttpMethod.POST, "/citas")
-                            .hasAuthority("CREATE");
-                    http.requestMatchers(HttpMethod.PUT, "/citas/**")
-                            .hasAuthority("UPDATE");
-                    http.requestMatchers(HttpMethod.DELETE, "/citas/**")
-                            .hasAuthority("DELETE");
+                    auth.requestMatchers(HttpMethod.GET, "/citas", "/citas/**")
+                            .hasAnyAuthority("citas:leer:propias", "citas:leer:asignadas", "citas:admin");
+                    auth.requestMatchers(HttpMethod.POST, "/citas")
+                            .hasAnyAuthority("citas:solicitar:propias", "citas:gestionar:asignadas", "citas:admin");
+                    auth.requestMatchers(HttpMethod.PUT, "/citas/**")
+                            .hasAnyAuthority("citas:gestionar:asignadas", "citas:admin");
+                    auth.requestMatchers(HttpMethod.DELETE, "/citas/**")
+                            .hasAuthority("citas:admin");
 
-                    // --- Consultorios, Especialidades, Enfermedades, Tratamientos, etc. ---
-                    http.requestMatchers("/consultorios/**", "/especialidades/**", "/enfermedades/**", "/tratamientos/**")
-                            .hasAnyRole("ADMIN", "DOCTOR");
+                    // --- Pacientes ---
+                    auth.requestMatchers(HttpMethod.GET, "/pacientes")
+                            .hasAnyAuthority("pacientes:leer:lista", "pacientes:admin");
+                    auth.requestMatchers(HttpMethod.GET, "/pacientes/**")
+                            .hasAnyAuthority("perfil:leer:propio", "pacientes:leer:perfil", "pacientes:admin");
+                    auth.requestMatchers(HttpMethod.PUT, "/pacientes/**")
+                            .hasAnyAuthority("perfil:actualizar:propio", "pacientes:admin");
+                    auth.requestMatchers(HttpMethod.POST, "/pacientes")
+                            .hasAuthority("pacientes:admin");
+                    auth.requestMatchers(HttpMethod.DELETE, "/pacientes/**")
+                            .hasAuthority("pacientes:admin");
+
+                    // --- Dentistas ---
+                    auth.requestMatchers(HttpMethod.GET, "/dentistas")
+                            .hasAuthority("dentistas:admin");
+                    auth.requestMatchers(HttpMethod.GET, "/dentistas/**")
+                            .hasAnyAuthority("perfil:leer:propio", "dentistas:admin");
+                    auth.requestMatchers(HttpMethod.PUT, "/dentistas/**")
+                            .hasAnyAuthority("perfil:actualizar:propio", "dentistas:admin");
+                    auth.requestMatchers(HttpMethod.POST, "/dentistas")
+                            .hasAuthority("dentistas:admin");
+                    auth.requestMatchers(HttpMethod.DELETE, "/dentistas/**")
+                            .hasAuthority("dentistas:admin");
 
                     // --- Antecedentes Medicos ---
-                    http.requestMatchers("/antecedentes-medicos/**")
-                            .hasAnyRole("ADMIN", "DOCTOR");
+                    auth.requestMatchers(HttpMethod.GET, "/antecedentes-medicos", "/antecedentes-medicos/**")
+                            .hasAnyAuthority("antecedentes:leer:propios", "antecedentes:leer:paciente", "antecedentes:admin");
+                    auth.requestMatchers(HttpMethod.POST, "/antecedentes-medicos")
+                            .hasAnyAuthority("antecedentes:gestionar:paciente", "antecedentes:admin");
+                    auth.requestMatchers(HttpMethod.PUT, "/antecedentes-medicos/**")
+                            .hasAnyAuthority("antecedentes:gestionar:paciente", "antecedentes:admin");
+                    auth.requestMatchers(HttpMethod.DELETE, "/antecedentes-medicos/**")
+                            .hasAuthority("antecedentes:admin");
 
-                    // Denegar todo lo demás que no esté configurado
-                    http.anyRequest().authenticated();
+                    // --- Clinica (Consultorios, Enfermedades, etc.) ---
+                    auth.requestMatchers("/consultorios/**", "/especialidades/**", "/enfermedades/**", "/tratamientos/**", "/estado-citas/**", "/tipo-citas/**")
+                            .hasAuthority("clinica:admin");
+
+                    // --- Regla final ---
+                    auth.anyRequest().authenticated();
                 })
 
-                // --- AÑADIMOS EL MANEJO DE EXCEPCIONES DE SEGURIDAD (NUEVO) ---
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
                 )
-                // --- FIN DEL BLOQUE DE EXCEPCIONES ---
 
                 .addFilterBefore(new JwtTokenValidator(jwtUtils), BasicAuthenticationFilter.class)
                 .build();

@@ -1,5 +1,6 @@
 package com.example.model.entity;
 
+import com.example.model.entity.security.UserEntity; // <-- 1. IMPORTAMOS UserEntity
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,14 +36,12 @@ public class Paciente {
     @Column(unique = true, length = 254)
     private String email;
 
-    @Column(unique = true, length = 50)
-    private String usuario;
-
-    @Column(length = 255)
-    private String contrasena;
-
     @Column(unique = true, length = 10)
     private String dui;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private UserEntity user;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -2,9 +2,11 @@ package com.example.controller;
 
 import com.example.controller.request.PacienteRequest;
 import com.example.controller.response.PacienteResponse;
+import com.example.controller.response.common.GenericResponse;
 import com.example.service.PacienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,7 +39,8 @@ public class PacienteController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        pacienteService.deleteById(id);
+    @ResponseStatus(HttpStatus.OK)
+    public GenericResponse delete(@PathVariable Long id) {
+        return pacienteService.deleteById(id);
     }
 }

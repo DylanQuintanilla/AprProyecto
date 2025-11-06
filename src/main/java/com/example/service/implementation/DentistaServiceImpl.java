@@ -11,10 +11,14 @@ import com.example.service.mapper.DentistaMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -31,21 +35,38 @@ public class DentistaServiceImpl implements DentistaService {
 
     @Override
     public DentistaResponse findById(Long id) {
-        return mapper.toDentistaResponse(
-                repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Dentista no encontrado"))
-        );
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        if (hasAuthority(authentication, "dentistas:admin")) {
+            Dentista dentista = repository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Dentista no encontrado"));
+            return mapper.toDentistaResponse(dentista);
+        }
+
+        if (hasAuthority(authentication, "perfil:leer:propio")) {
+            Dentista dentistaPropio = repository.findByUserUsername(username)
+                    .orElseThrow(() -> new EntityNotFoundException("Dentista no encontrado para el usuario"));
+
+            if (!dentistaPropio.getId().equals(id)) {
+                throw new AccessDeniedException("No tiene permisos para ver el perfil de otro dentista");
+            }
+            return mapper.toDentistaResponse(dentistaPropio);
+        }
+
+        throw new AccessDeniedException("No tiene permisos para ver este perfil");
     }
 
     @Override
     public DentistaResponse save(DentistaRequest request) {
+
         if (repository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new ValidationException("Ya existe un dentista con ese correo");
         }
-        if (repository.existsByUsuarioIgnoreCase(request.getUsuario())) {
-            throw new ValidationException("Ya existe un dentista con ese nombre de usuario");
-        }
+        // --- BLOQUE DE USUARIO ELIMINADO ---
 
         Dentista dentista = mapper.toDentista(request);
+
         if (request.getEspecialidadesIds() != null && !request.getEspecialidadesIds().isEmpty()) {
             List<Especialidad> especialidades = especialidadRepository.findAllById(request.getEspecialidadesIds());
             if (especialidades.size() != request.getEspecialidadesIds().size()) {
@@ -59,22 +80,36 @@ public class DentistaServiceImpl implements DentistaService {
 
     @Override
     public DentistaResponse update(Long id, DentistaRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
         Dentista existing = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Dentista no encontrado"));
+
+        boolean canUpdate = false;
+        if (hasAuthority(authentication, "dentistas:admin")) {
+            canUpdate = true;
+        } else if (hasAuthority(authentication, "perfil:actualizar:propio")) {
+            Dentista dentistaPropio = repository.findByUserUsername(username)
+                    .orElseThrow(() -> new EntityNotFoundException("Dentista no encontrado para el usuario"));
+            if (dentistaPropio.getId().equals(id)) {
+                canUpdate = true;
+            }
+        }
+
+        if (!canUpdate) {
+            throw new AccessDeniedException("No tiene permisos para actualizar este perfil");
+        }
 
         if (!existing.getEmail().equalsIgnoreCase(request.getEmail()) &&
                 repository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new ValidationException("Ya existe un dentista con ese correo");
         }
-        if (request.getUsuario() != null && !existing.getUsuario().equalsIgnoreCase(request.getUsuario()) &&
-                repository.existsByUsuarioIgnoreCase(request.getUsuario())) {
-            throw new ValidationException("Ya existe un dentista con ese nombre de usuario");
-        }
+        // --- BLOQUE DE USUARIO ELIMINADO ---
 
         existing.setNombre(request.getNombre());
         existing.setApellido(request.getApellido());
         existing.setEmail(request.getEmail());
-        existing.setUsuario(request.getUsuario());
 
         if (request.getEspecialidadesIds() != null) {
             List<Especialidad> especialidades = especialidadRepository.findAllById(request.getEspecialidadesIds());
@@ -90,5 +125,9 @@ public class DentistaServiceImpl implements DentistaService {
     @Override
     public void deleteById(Long id) {
         repository.deleteById(id);
+    }
+
+    private boolean hasAuthority(Authentication authentication, String authority) {
+        return authentication.getAuthorities().contains(new SimpleGrantedAuthority(authority));
     }
 }
