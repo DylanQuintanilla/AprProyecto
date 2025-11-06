@@ -18,8 +18,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CitaRequest {
 
-    @NotNull(message = "El ID del paciente es obligatorio")
-    private Long pacienteId;
+
 
     @NotNull(message = "El ID del dentista es obligatorio")
     private Long dentistaId;
