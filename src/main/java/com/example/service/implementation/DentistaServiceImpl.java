@@ -5,29 +5,50 @@ import com.example.controller.response.DentistaResponse;
 import com.example.controller.response.common.GenericResponse;
 import com.example.model.entity.Dentista;
 import com.example.model.entity.Especialidad;
+import com.example.model.entity.security.RoleEntity;
+import com.example.model.entity.security.UserEntity;
 import com.example.repository.DentistaRepository;
 import com.example.repository.EspecialidadRepository;
+import com.example.repository.security.RoleRepository;
+import com.example.repository.security.UserRepository;
 import com.example.service.DentistaService;
 import com.example.service.mapper.DentistaMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class DentistaServiceImpl implements DentistaService {
 
+    @Autowired
     private final DentistaRepository repository;
+
+    @Autowired
     private final EspecialidadRepository especialidadRepository;
+
+    @Autowired
     private final DentistaMapper mapper;
+
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private final RoleRepository roleRepository;
+
+    @Autowired
+    private final UserRepository userRepository;
 
     @Override
     public List<DentistaResponse> findAll() {
@@ -61,13 +82,37 @@ public class DentistaServiceImpl implements DentistaService {
     @Override
     public DentistaResponse save(DentistaRequest request) {
 
+        // --- Validaciones (Asegurarse de que no exista el correo ni el usuario) ---
         if (repository.existsByEmailIgnoreCase(request.getEmail())) {
             throw new ValidationException("Ya existe un dentista con ese correo");
         }
-        // --- BLOQUE DE USUARIO ELIMINADO ---
+        // Usamos userRepository para verificar que el username no exista
+        if (userRepository.findUserEntityByUsername(request.getUsuario()).isPresent()) {
+            throw new ValidationException("El nombre de usuario ya está en uso");
+        }
+
+        // --- LÓGICA DE USUARIO AÑADIDA ---
+        // Buscamos el rol DOCTOR
+        RoleEntity roleDoctor = roleRepository.findRoleEntitiesByRoleEnumIn(List.of("DOCTOR"))
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Error: Rol 'DOCTOR' no encontrado."));
+
+        // Creamos la entidad de Usuario
+        UserEntity userEntity = UserEntity.builder()
+                .username(request.getUsuario())
+                .password(passwordEncoder.encode(request.getContrasena()))
+                .roles(Set.of(roleDoctor)) // <-- Asignamos el rol DOCTOR
+                .isEnabled(true)
+                .accountNoLocked(true)
+                .accountNoExpired(true)
+                .credentialNoExpired(true)
+                .build();
 
         Dentista dentista = mapper.toDentista(request);
+        dentista.setUser(userEntity); // <-- ASOCIAMOS EL USUARIO
 
+        // (Tu lógica de especialidades que ya tenías)
         if (request.getEspecialidadesIds() != null && !request.getEspecialidadesIds().isEmpty()) {
             List<Especialidad> especialidades = especialidadRepository.findAllById(request.getEspecialidadesIds());
             if (especialidades.size() != request.getEspecialidadesIds().size()) {
@@ -76,7 +121,17 @@ public class DentistaServiceImpl implements DentistaService {
             dentista.setEspecialidades(especialidades);
         }
 
-        return mapper.toDentistaResponse(repository.save(dentista));
+        // Guardamos el dentista (y el usuario en cascada [cite: 456])
+        Dentista dentistaGuardado = repository.save(dentista);
+
+        // --- EXTRAER PERMISOS Y ROLES COMPLETOS ---
+        // Aunque no es necesario para el save, es una buena práctica retornarlo completo
+        // para futuros usos. El DentistaResponse se genera del objeto guardado.
+
+        // Esto es opcional, ya que el mapper se encarga de la respuesta.
+        // Lo importante era la creación del UserEntity.
+
+        return mapper.toDentistaResponse(dentistaGuardado);
     }
 
     @Override

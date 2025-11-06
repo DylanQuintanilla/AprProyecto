@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.controller.request.auth.AuthCreateUserRequest;
 import com.example.controller.request.auth.AuthLoginRequest;
+import com.example.controller.request.auth.AuthSignUpRequest;
 import com.example.controller.request.auth.RefreshRequest; // <-- 1. Importar
 import com.example.controller.response.auth.AuthResponse;
 import com.example.controller.response.auth.RefreshResponse; // <-- 2. Importar
@@ -24,7 +25,9 @@ public class AuthenticationController {
 
     @PostMapping("/sign-up")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@Valid @RequestBody AuthCreateUserRequest userRequest){
+    // --- CAMBIO AQUÍ ---
+    public AuthResponse register(@Valid @RequestBody AuthSignUpRequest userRequest){
+        // El AuthCreateUserRequest original ya no se usa aquí
         return this.userDetailService.createUser(userRequest);
     }
 
