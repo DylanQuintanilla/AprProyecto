@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 public class RefreshTokenServiceImpl implements RefreshTokenService {
@@ -40,7 +41,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     /**
      * Crea un nuevo token de refresco para un usuario.
-     * Si ya existe uno, lo elimina y crea uno nuevo.
+     * Si ya existe uno, lo actualiza con el nuevo token y fecha de expiración.
      */
     @Override
     @Transactional
@@ -48,16 +49,24 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         UserEntity user = userRepository.findUserEntityByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con username: " + username));
 
-        // Eliminar token de refresco antiguo si existe
-        refreshTokenRepository.deleteByUser(user);
+        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser(user);
 
-        // Crear el nuevo token de refresco
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
-                .build();
+        RefreshToken refreshToken;
+        if (existingToken.isPresent()) {
+            // Si ya existe, lo actualizamos. Esto previene el error de DUPLICATE KEY.
+            refreshToken = existingToken.get();
+            refreshToken.setToken(UUID.randomUUID().toString());
+            refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+        } else {
+            // Si no existe, creamos uno nuevo.
+            refreshToken = RefreshToken.builder()
+                    .user(user)
+                    .token(UUID.randomUUID().toString())
+                    .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
+                    .build();
+        }
 
+        // Guardamos o actualizamos
         return refreshTokenRepository.save(refreshToken);
     }
 
@@ -94,9 +103,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // 5. Crear el nuevo token de acceso (JWT)
         String newAccessToken = jwtUtils.createToken(authentication);
-
-        // (Opcional pero recomendado: Rotación de Token de Refresco)
-        // Por simplicidad, aquí reutilizamos el mismo token de refresco.
 
         return new RefreshResponse(newAccessToken, requestRefreshToken);
     }

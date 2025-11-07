@@ -13,6 +13,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     // Método para buscar un token por su valor
     Optional<RefreshToken> findByToken(String token);
 
+    // Método para buscar un token por su usuario (NUEVO MÉTODO REQUERIDO)
+    Optional<RefreshToken> findByUser(UserEntity user); // <-- AÑADIR ESTO
+
     // Método para eliminar un token perteneciente a un usuario (útil para logout)
     void deleteByUser(UserEntity user);
 }
