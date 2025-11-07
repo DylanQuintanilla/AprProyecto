@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clínica Dental APR</title>
+
+    <!-- 1. CDN DE TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 2. CDN para DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.min.css">
+    
+    <!-- 3. CDN para Toastify CSS (Eliminamos el hash de integridad) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.6.1/toastify.min.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Scripts de Librerías CDN -->
+    
+    <!-- 4. Toastify JS (DEBE IR PRIMERO) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.6.1/toastify.js"></script>
+
+    <!-- 5. jQuery (DEBE IR ANTES DE DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- 6. DataTables JS (Requiere jQuery) -->
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
+    
+  </body>
+</html>
